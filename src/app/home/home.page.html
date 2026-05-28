@@ -1,88 +1,219 @@
 <ion-header>
-  <ion-toolbar>
-    <ion-title>Mi Ubicación GPS</ion-title>
-    <ion-buttons slot="end">
-      <ion-chip>
-        <ion-avatar>
-          <div style="width: 32px; height: 32px; background: var(--ion-color-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">
-            👤
-          </div>
-        </ion-avatar>
-        <ion-label>{{ userName() || 'Usuario' }}</ion-label>
-      </ion-chip>
-    </ion-buttons>
+  <ion-toolbar class="responsive-toolbar">
+    <div class="toolbar-content">
+      <ion-title>Encuestas GPS</ion-title>
+
+      <div class="buttons-group">
+        <!-- Chip del usuario -->
+        <ion-chip class="user-chip">
+          <ion-avatar>
+            <div class="user-avatar">
+              👤
+            </div>
+          </ion-avatar>
+          <ion-label>{{ userName() || 'Usuario' }}</ion-label>
+        </ion-chip>
+
+        <!-- Botón de cierre de sesión rectangular -->
+        <ion-button fill="solid" color="danger" (click)="logout()" class="logout-button-rect">
+          <ion-icon name="log-out-outline"></ion-icon>
+          <span class="logout-text">Salir</span>
+        </ion-button>
+      </div>
+    </div>
   </ion-toolbar>
 </ion-header>
+
+<ion-toolbar>
+  <ion-searchbar 
+    [(ngModel)]="terminoBusqueda" 
+    (ionInput)="filtrarEncuestas()"
+    placeholder="Buscar por nombre, lugar o videojuego..."
+    showCancelButton="focus">
+  </ion-searchbar>
+</ion-toolbar>
 
 <ion-content class="ion-padding">
   <!-- Info del usuario -->
   <ion-card *ngIf="userEmail()">
     <ion-card-header>
-      <ion-card-title>Bienvenido</ion-card-title>
+      <ion-card-title>Bienvenido {{ userName() }}</ion-card-title>
     </ion-card-header>
     <ion-card-content>
       <p><strong>Email:</strong> {{ userEmail() }}</p>
-      <p><strong>ID:</strong> {{ (userId() | slice:0:8) }}...</p>
     </ion-card-content>
   </ion-card>
 
-  <!-- Coordenadas actuales -->
-  <ion-card *ngIf="latitude() !== null && longitude() !== null">
+  <!-- Lista de encuestas -->
+  <ion-card>
     <ion-card-header>
-      <ion-card-title>Coordenadas actuales</ion-card-title>
+      <ion-card-title>Encuestas Registradas</ion-card-title>
     </ion-card-header>
     <ion-card-content>
-      <p><strong>Latitud:</strong> {{ latitude() }}</p>
-      <p><strong>Longitud:</strong> {{ longitude() }}</p>
-      <p><small>Actualizado: {{ fechaActual() | date:'HH:mm:ss' }}</small></p>
+      <div *ngIf="cargando()" class="loading-container">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>Cargando encuestas...</p>
+      </div>
       
-      <!-- Mini mapa estático de Google (opcional) -->
-      <div style="margin-top: 10px; text-align: center;">
-        <img 
-          [src]="'https://maps.googleapis.com/maps/api/staticmap?center=' + latitude() + ',' + longitude() + '&zoom=15&size=300x150&markers=color:red%7C' + latitude() + ',' + longitude() + '&key=TU_API_KEY_AQUI'"
-          style="width: 100%; border-radius: 8px;"
-          *ngIf="false">
+      <div *ngIf="!cargando() && encuestas().length === 0" class="empty-container">
+        <p>No hay encuestas registradas</p>
+        <ion-button (click)="crearEncuesta()" size="small">
+          Crear primera encuesta
+        </ion-button>
+      </div>
+      
+      <div *ngFor="let encuesta of encuestas()" class="encuesta-card">
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>{{ encuesta.nombre_alias }}</ion-card-title>
+            <ion-label color="medium">
+              <small>Encuesta realizada: {{ encuesta.created_at | date:'dd/MM/yyyy HH:mm:ss' }}</small>
+            </ion-label>
+          </ion-card-header>
+          
+          <ion-card-content>
+            <ion-grid>
+              <!-- Imagen de la encuesta -->
+              <ion-row>
+                <ion-col size="12" *ngIf="encuesta.imagen_url">
+                  <img [src]="encuesta.imagen_url" class="encuesta-imagen" alt="Imagen de encuesta">
+                </ion-col>
+              </ion-row>
+              
+              <!-- Datos del encuestado -->
+              <ion-row class="datos-encuestado">
+                <ion-col size="12">
+                  <h3>Datos del encuestado</h3>
+                </ion-col>
+                <ion-col size="6">
+                  <p><strong>Edad:</strong> {{ encuesta.edad_rango || 'N/E' }}</p>
+                </ion-col>
+                <ion-col size="6">
+                  <p><strong>Rol:</strong> {{ encuesta.rol || 'N/E' }}</p>
+                </ion-col>
+              </ion-row>
+              
+              <!-- Preferencias de videojuegos -->
+              <ion-row class="preferencias">
+                <ion-col size="12">
+                  <h3>Preferencias de videojuegos</h3>
+                </ion-col>
+                <ion-col size="12">
+                  <p><strong>Videojuego favorito:</strong> {{ encuesta.videojuego_favorito || 'N/E' }}</p>
+                </ion-col>
+                <ion-col size="6">
+                  <p><strong>Plataforma:</strong> {{ encuesta.plataforma || 'N/E' }}</p>
+                </ion-col>
+                <ion-col size="6">
+                  <p><strong>Género favorito:</strong> {{ encuesta.genero_favorito || 'N/E' }}</p>
+                </ion-col>
+              </ion-row>
+              
+              <!-- Comentario -->
+              <ion-row *ngIf="encuesta.comentario">
+                <ion-col size="12">
+                  <p><strong>Comentario:</strong> {{ encuesta.comentario }}</p>
+                </ion-col>
+              </ion-row>
+              
+              <!-- SECCIÓN DE UBICACIÓN - Mostrando los 4 campos solicitados -->
+              <ion-row class="ubicacion-section">
+                <ion-col size="12">
+                  <h3>📍 Información de ubicación</h3>
+                  
+                  <!-- Si tiene ubicación -->
+                  <div *ngIf="encuesta.latitud && encuesta.longitud" class="ubicacion-completa">
+                    <ion-list class="ubicacion-detalles">
+                      <ion-item lines="none" class="ubicacion-item">
+                        <ion-label>
+                          <strong>Latitud:</strong>
+                          <ion-text color="primary">
+                            <p class="valor-ubicacion">{{ encuesta.latitud | number:'1.6-6' }}</p>
+                          </ion-text>
+                        </ion-label>
+                      </ion-item>
+                      
+                      <ion-item lines="none" class="ubicacion-item">
+                        <ion-label>
+                          <strong>Longitud:</strong>
+                          <ion-text color="primary">
+                            <p class="valor-ubicacion">{{ encuesta.longitud | number:'1.6-6' }}</p>
+                          </ion-text>
+                        </ion-label>
+                      </ion-item>
+                      
+                      <ion-item lines="none" class="ubicacion-item">
+                        <ion-label>
+                          <strong>Fecha y hora de captura:</strong>
+                          <ion-text color="medium">
+                            <p class="valor-ubicacion">{{ encuesta.created_at | date:'dd/MM/yyyy HH:mm:ss' }}</p>
+                          </ion-text>
+                        </ion-label>
+                      </ion-item>
+                      
+                      <ion-item lines="none" class="ubicacion-item">
+                        <ion-label>
+                          <strong>Lugar en el campus:</strong>
+                          <ion-text color="success">
+                            <p class="valor-ubicacion">{{ encuesta.lugar_campus || 'No especificado' }}</p>
+                          </ion-text>
+                        </ion-label>
+                      </ion-item>
+                    </ion-list>
+                    
+                    <div class="acciones-mapa">
+                      <ion-button 
+                        expand="block" 
+                        color="tertiary" 
+                        (click)="verEnMapa(encuesta.latitud, encuesta.longitud)"
+                        class="mapa-btn">
+                        <ion-icon name="map" slot="start"></ion-icon>
+                        Ver ubicación en Google Maps
+                      </ion-button>
+                    </div>
+                  </div>
+                  
+                  <!-- Si no tiene ubicación -->
+                  <div *ngIf="!encuesta.latitud || !encuesta.longitud" class="ubicacion-no-disponible">
+                    <ion-icon name="location-off" class="icono-ubicacion"></ion-icon>
+                    <p class="ubicacion-privado">
+                      🔒 Ubicación no disponible
+                    </p>
+                    <ion-text color="medium">
+                      <small>El encuestado no compartió su ubicación en esta encuesta</small>
+                    </ion-text>
+                  </div>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+            
+            <!-- Botones de acción -->
+            <div class="botones-accion">
+              <ion-button fill="clear" color="primary" (click)="editarEncuesta(encuesta.id!)">
+                <ion-icon name="create" slot="start"></ion-icon>
+                Editar encuesta
+              </ion-button>
+              
+              <ion-button fill="clear" color="danger" (click)="confirmarEliminar(encuesta.id!)">
+                <ion-icon name="trash" slot="start"></ion-icon>
+                Eliminar encuesta
+              </ion-button>
+            </div>
+          </ion-card-content>
+        </ion-card>
       </div>
     </ion-card-content>
   </ion-card>
-
-  <!-- Mensaje de error -->
-  <ion-card *ngIf="errorMsg()" color="danger">
-    <ion-card-content>
-      {{ errorMsg() }}
-    </ion-card-content>
-  </ion-card>
-
-  <!-- Botones de acciones -->
-  <ion-button expand="block" (click)="obtenerUbicacionActual()">
-    Obtener ubicación actual
-  </ion-button>
-
-  <ion-button expand="block" (click)="iniciarSeguimiento()" [disabled]="watchId !== null">
-    Iniciar seguimiento
-  </ion-button>
-
-  <ion-button expand="block" color="medium" (click)="detenerSeguimiento()" [disabled]="watchId === null">
-    Detener seguimiento
-  </ion-button>
-
-  <!-- Botones de Google Maps -->
-  <ion-button expand="block" color="tertiary" (click)="abrirEnGoogleMaps()">
-    Ver en Google Maps
-  </ion-button>
-
-  <!-- Botón guardar ubicación -->
-  <ion-button expand="block" color="success" (click)="guardarUbicacion()">
-    Guardar ubicación en Supabase
-  </ion-button>
-
-  <!-- Botón cerrar sesión -->
-  <ion-button expand="block" color="danger" fill="outline" (click)="logout()">
-    Cerrar sesión
-  </ion-button>
+  
+  <!-- Botón flotante para nueva encuesta -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button (click)="crearEncuesta()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
 </ion-content>
 
-<!-- Toast para mostrar mensajes -->
+<!-- Toast para mensajes -->
 <ion-toast
   [isOpen]="showToast()"
   [message]="toastMessage()"
@@ -90,3 +221,27 @@
   [duration]="3000"
   position="bottom">
 </ion-toast>
+
+<!-- Alert para confirmar eliminación -->
+<ion-alert
+  [isOpen]="mostrarAlertEliminar"
+  header="Confirmar eliminación"
+  message="¿Estás seguro de que deseas eliminar esta encuesta?"
+  buttons="[
+    {
+      text: 'Cancelar',
+      role: 'cancel',
+      handler: () => { this.mostrarAlertEliminar = false; }
+    },
+    {
+      text: 'Eliminar',
+      handler: () => {
+        if (this.encuestaAEliminar) {
+          this.eliminarEncuesta(this.encuestaAEliminar);
+        }
+        this.mostrarAlertEliminar = false;
+        this.encuestaAEliminar = null;
+      }
+    }
+  ]">
+</ion-alert>

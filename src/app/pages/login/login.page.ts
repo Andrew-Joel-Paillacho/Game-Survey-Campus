@@ -10,13 +10,30 @@ import {
   IonButton,
   IonText,
   IonCard,
-  IonCardContent
+  IonCardContent,
+  IonIcon
 } from '@ionic/angular/standalone';
 
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { SupabaseService } from '../../services/supabase.service';
+import { addIcons } from 'ionicons';
+import { 
+  megaphoneOutline, 
+  personAddOutline, 
+  checkmarkCircleOutline, 
+  trophyOutline, 
+  peopleOutline, 
+  rocketOutline, 
+  giftOutline, 
+  chatbubblesOutline,
+  mailOutline,
+  lockClosedOutline,
+  arrowForwardOutline,
+  logInOutline,
+  alertCircleOutline
+} from 'ionicons/icons';
 
 @Component({
   selector: 'app-login',
@@ -36,20 +53,50 @@ import { SupabaseService } from '../../services/supabase.service';
     IonButton,
     IonText,
     IonCard,
-    IonCardContent
+    IonCardContent,
+    IonIcon
   ]
 })
 export class LoginPage {
   email = '';
   password = '';
   mensaje = '';
+  isRegisterMode = false;
 
   constructor(
     private supabaseService: SupabaseService,
     private router: Router
-  ) {}
+  ) {
+    addIcons({
+      megaphoneOutline,
+      personAddOutline,
+      checkmarkCircleOutline,
+      trophyOutline,
+      peopleOutline,
+      rocketOutline,
+      giftOutline,
+      chatbubblesOutline,
+      mailOutline,
+      lockClosedOutline,
+      arrowForwardOutline,
+      logInOutline,
+      alertCircleOutline
+    });
+  }
+
+  toggleMode() {
+    this.isRegisterMode = !this.isRegisterMode;
+    this.mensaje = ''; // Limpiar mensajes al cambiar modo
+    this.email = ''; // Opcional: limpiar campos
+    this.password = '';
+  }
 
   async login() {
+    if (!this.email || !this.password) {
+      this.mensaje = 'Por favor completa todos los campos';
+      return;
+    }
+
     const { data, error } = await this.supabaseService.login(
       this.email,
       this.password
@@ -60,9 +107,7 @@ export class LoginPage {
       return;
     }
 
-    // Guardar datos del usuario en el estado o localStorage si es necesario
     if (data?.user) {
-      // Puedes guardar el usuario en un servicio o localStorage
       localStorage.setItem('user', JSON.stringify({
         email: data.user.email,
         id: data.user.id,
@@ -74,6 +119,11 @@ export class LoginPage {
   }
 
   async register() {
+    if (!this.email || !this.password) {
+      this.mensaje = 'Por favor completa todos los campos';
+      return;
+    }
+
     const { error } = await this.supabaseService.register(
       this.email,
       this.password
@@ -84,6 +134,13 @@ export class LoginPage {
       return;
     }
 
-    this.mensaje = 'Usuario registrado, revisa tu correo para la confirmacion.';
+    this.mensaje = '¡Registro exitoso! Revisa tu correo para confirmar tu cuenta.';
+    
+    // Opcional: cambiar automáticamente al modo login después de 3 segundos
+    setTimeout(() => {
+      if (this.mensaje.includes('exitoso')) {
+        this.toggleMode();
+      }
+    }, 3000);
   }
 }

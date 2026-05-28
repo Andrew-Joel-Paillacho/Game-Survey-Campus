@@ -1,0 +1,369 @@
+.main-content {
+  --background: #000000;
+  height: 100%;
+}
+
+.split-container {
+  display: flex;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+// Columnas izquierda y derecha
+.left-column, .right-column {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+// Columna izquierda (Turquesa)
+.left-column {
+  background: linear-gradient(135deg, #00CED1 0%, #008B8B 100%);
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+    animation: pulse 8s ease-in-out infinite;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 0.3; }
+  50% { transform: scale(1.1); opacity: 0.5; }
+}
+
+// Columna derecha (Negro)
+.right-column {
+  background: #0a0a0a;
+  box-shadow: -5px 0 20px rgba(0,0,0,0.5);
+}
+
+// Wrapper de contenido
+.content-wrapper {
+  text-align: center;
+  color: white;
+  padding: 2rem;
+  z-index: 1;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.icon-container {
+  margin-bottom: 2rem;
+  
+  .main-icon {
+    font-size: 5rem;
+    filter: drop-shadow(0 0 10px rgba(255,255,255,0.3));
+    animation: float 3s ease-in-out infinite;
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+h1 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  font-weight: 700;
+}
+
+p {
+  font-size: 1rem;
+  line-height: 1.6;
+  opacity: 0.95;
+}
+
+.features, .benefits {
+  margin-top: 2rem;
+  text-align: left;
+  
+  .feature, .benefit {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    backdrop-filter: blur(5px);
+    transition: transform 0.3s ease;
+    
+    &:hover {
+      transform: translateX(5px);
+      background: rgba(255,255,255,0.15);
+    }
+    
+    ion-icon {
+      font-size: 1.25rem;
+      color: #ff4444;
+    }
+    
+    span {
+      font-size: 0.9rem;
+    }
+  }
+}
+
+// Formulario
+.form-container {
+  width: 80%;
+  max-width: 400px;
+  padding: 2rem;
+  animation: fadeInRight 0.6s ease-out;
+}
+
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.form-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  
+  h2 {
+    color: #00CED1;
+    font-size: 1.75rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+  }
+  
+  p {
+    color: #888;
+    font-size: 0.9rem;
+  }
+}
+
+// Items del formulario
+.custom-item {
+  --background: #1a1a1a;
+  --border-radius: 10px;
+  margin-bottom: 1rem;
+  --padding-start: 1rem;
+  --inner-padding-end: 1rem;
+  --highlight-height: 0;
+  --border-width: 0;
+  --ripple-color: #00CED1;
+  
+  &.item-has-focus {
+    --background: #222;
+    box-shadow: 0 0 0 2px #00CED1;
+  }
+  
+  .input-icon {
+    color: #00CED1;
+    font-size: 1.2rem;
+  }
+  
+  ion-input {
+    --color: white;
+    --placeholder-color: #666;
+    --placeholder-opacity: 1;
+  }
+}
+
+// Botón principal
+.submit-btn {
+  --background: linear-gradient(135deg, #00CED1 0%, #008B8B 100%);
+  --background-hover: linear-gradient(135deg, #00B4B8 0%, #006B6B 100%);
+  --border-radius: 10px;
+  margin-top: 1rem;
+  --box-shadow: 0 4px 15px rgba(0,206,209,0.3);
+  height: 48px;
+  font-weight: 600;
+  text-transform: none;
+  font-size: 1rem;
+  
+  &[disabled] {
+    --background: #333;
+    --box-shadow: none;
+    opacity: 0.5;
+  }
+}
+
+// Switch mode
+.switch-mode {
+  text-align: center;
+  margin-top: 1.5rem;
+  
+  p {
+    color: #888;
+    margin-bottom: 0.5rem;
+  }
+  
+  .switch-btn {
+    --color: #ff4444;
+    --color-hover: #ff6666;
+    text-transform: none;
+    font-weight: 500;
+    
+    ion-icon {
+      transition: transform 0.3s ease;
+    }
+    
+    &:hover ion-icon {
+      transform: translateX(3px);
+    }
+  }
+}
+
+// Mensajes
+.message-container {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  animation: slideDown 0.3s ease-out;
+  
+  ion-icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+  
+  p {
+    margin: 0;
+    font-size: 0.85rem;
+  }
+  
+  &:not(.error) {
+    background: rgba(0,206,209,0.1);
+    color: #00CED1;
+    border-left: 3px solid #00CED1;
+    
+    ion-icon {
+      color: #00CED1;
+    }
+  }
+  
+  &.error {
+    background: rgba(255,68,68,0.1);
+    color: #ff4444;
+    border-left: 3px solid #ff4444;
+    
+    ion-icon {
+      color: #ff4444;
+    }
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Botón central flotante
+.center-toggle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  cursor: pointer;
+  
+  .toggle-button {
+    width: 60px;
+    height: 60px;
+    background: #ff4444;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 20px rgba(255,68,68,0.5);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    
+    ion-icon {
+      font-size: 1.8rem;
+      color: white;
+      transition: transform 0.3s ease;
+    }
+    
+    &:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 30px rgba(255,68,68,0.8);
+      
+      ion-icon {
+        transform: rotate(180deg);
+      }
+    }
+  }
+}
+
+// Media query para móviles
+@media (max-width: 768px) {
+  .split-container {
+    flex-direction: column;
+  }
+  
+  .left-column {
+    min-height: 40%;
+  }
+  
+  .right-column {
+    min-height: 60%;
+  }
+  
+  .center-toggle {
+    top: 40%;
+    
+    .toggle-button {
+      width: 50px;
+      height: 50px;
+      
+      ion-icon {
+        font-size: 1.5rem;
+      }
+    }
+  }
+  
+  h1 {
+    font-size: 1.5rem;
+  }
+  
+  .features, .benefits {
+    .feature, .benefit {
+      padding: 0.35rem;
+      
+      span {
+        font-size: 0.8rem;
+      }
+    }
+  }
+}

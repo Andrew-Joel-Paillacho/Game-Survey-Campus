@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { 
   IonButton, 
   IonCard, 
@@ -13,13 +13,26 @@ import {
   IonLabel,
   IonChip,
   IonAvatar,
-  IonToast
+  IonToast,
+  IonFab,
+  IonFabButton,
+  IonIcon,
+  IonGrid,
+  IonRow,
+  IonCol,
+  IonAlert,
+  IonSpinner, 
+  IonText,
+  IonSearchbar,
+  IonList,
+  IonItem,
 } from '@ionic/angular/standalone';
-import { NgIf, DatePipe, SlicePipe } from '@angular/common';
-import { LocationService } from '../services/location';
-import { SupabaseService } from '../services/supabase.service';
+import { NgIf, DatePipe, NgFor, SlicePipe, DecimalPipe } from '@angular/common';
 import { Router } from '@angular/router';
-import { Browser } from '@capacitor/browser';
+import { SupabaseService, Encuesta } from '../services/supabase.service';
+import { addIcons } from 'ionicons';
+import { add, create, trash, map } from 'ionicons/icons';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-home',
@@ -41,39 +54,61 @@ import { Browser } from '@capacitor/browser';
     IonAvatar,
     IonToast,
     DatePipe,
-    SlicePipe
+    SlicePipe,
+    DecimalPipe,
+    FormsModule,
+    IonFab,
+    IonFabButton,
+    IonIcon,
+    IonGrid,
+    IonRow,
+    IonCol,
+    IonAlert,
+    IonSpinner,
+    NgFor,
+    IonText,
+    IonSearchbar,
+    IonList,
+    IonItem
   ],
   templateUrl: './home.page.html',
   styleUrls: ['./home.page.scss']
 })
-export class HomePage implements OnInit, OnDestroy {
-  latitude = signal<number | null>(null);
-  longitude = signal<number | null>(null);
-  watchId: string | null = null;
-  errorMsg = signal<string | null>(null);
+export class HomePage implements OnInit {
+  encuestas = signal<Encuesta[]>([]);
+  encuestasFiltradas = signal<Encuesta[]>([]);
+  terminoBusqueda = '';
   userEmail = signal<string | null>(null);
   userName = signal<string | null>(null);
   userId = signal<string | null>(null);
   showToast = signal<boolean>(false);
   toastMessage = signal<string>('');
   toastColor = signal<string>('success');
-  fechaActual = signal<Date>(new Date());
+  cargando = signal<boolean>(true);
+  mostrarAlertEliminar = false;
+  encuestaAEliminar: string | null = null;
 
   constructor(
-    private loc: LocationService,
     private supabaseService: SupabaseService,
     private router: Router
-  ) {}
+  ) {
+    addIcons({ add, create, trash, map });
+  }
+
+  filtrarEncuestas() {
+    const termino = this.terminoBusqueda.toLowerCase();
+    this.encuestasFiltradas.set(
+      this.encuestas().filter(encuesta => 
+        encuesta.nombre_alias.toLowerCase().includes(termino) ||
+        (encuesta.lugar_campus && encuesta.lugar_campus.toLowerCase().includes(termino)) ||
+        (encuesta.videojuego_favorito && encuesta.videojuego_favorito.toLowerCase().includes(termino))
+      )
+    );
+  }
 
   async ngOnInit() {
     await this.cargarUsuario();
-    await this.loc.ensurePermissions();
-    await this.obtenerUbicacionActual();
-    await this.iniciarSeguimiento();
-    
-    setInterval(() => {
-      this.fechaActual.set(new Date());
-    }, 1000);
+    await this.cargarEncuestas();
   }
 
   async cargarUsuario() {
@@ -101,142 +136,44 @@ export class HomePage implements OnInit, OnDestroy {
     }
   }
 
-  async obtenerUbicacionActual() {
+  async cargarEncuestas() {
+    this.cargando.set(true);
     try {
-      const pos = await this.loc.getCurrentPosition();
-      this.latitude.set(pos.coords.latitude);
-      this.longitude.set(pos.coords.longitude);
-      this.errorMsg.set(null);
-      this.fechaActual.set(new Date());
-    } catch (e: any) {
-      this.errorMsg.set(e?.message ?? 'Error al obtener la ubicación actual');
-    }
-  }
-
-  async iniciarSeguimiento() {
-    try {
-      this.watchId = await this.loc.watchPosition((pos) => {
-        this.latitude.set(pos.coords.latitude);
-        this.longitude.set(pos.coords.longitude);
-        this.fechaActual.set(new Date());
-      }, (err) => {
-        this.errorMsg.set(err?.message ?? 'Error en seguimiento de ubicación');
-      });
-    } catch (e: any) {
-      this.errorMsg.set(e?.message ?? 'No se pudo iniciar el seguimiento');
-    }
-  }
-
-  async detenerSeguimiento() {
-    if (this.watchId) {
-      await this.loc.clearWatch(this.watchId);
-      this.watchId = null;
-    }
-  }
-
-  // Método para abrir en Google Maps
-  abrirEnGoogleMaps() {
-    if (this.latitude() === null || this.longitude() === null) {
-      this.mostrarMensaje('No hay ubicación disponible para abrir en Maps', 'warning');
-      return;
-    }
-
-    const lat = this.latitude();
-    const lng = this.longitude();
-    
-    // Detectar la plataforma
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const isAndroid = /Android/.test(navigator.userAgent);
-    
-    let url: string;
-    
-    if (isIOS) {
-      url = `comgooglemaps://?q=${lat},${lng}&center=${lat},${lng}&zoom=15`;
-      setTimeout(() => {
-        if (!document.hidden) {
-          window.open(`maps://?q=${lat},${lng}`, '_blank');
-        }
-      }, 250);
-    } else if (isAndroid) {
-      url = `google.navigation:q=${lat},${lng}`;
-    } else {
-      url = `https://www.google.com/maps?q=${lat},${lng}&z=15`;
-    }
-    
-    window.open(url, '_blank');
-    this.mostrarMensaje('Abriendo Google Maps...', 'medium');
-  }
-
-  // Método para abrir con instrucciones de navegación
-  obtenerRuta() {
-    if (this.latitude() === null || this.longitude() === null) {
-      this.mostrarMensaje('No hay ubicación disponible', 'warning');
-      return;
-    }
-
-    const lat = this.latitude();
-    const lng = this.longitude();
-    
-    // Verificar si el navegador soporta geolocalización para obtener la ubicación actual del usuario
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const origenLat = position.coords.latitude;
-          const origenLng = position.coords.longitude;
-          const url = `https://www.google.com/maps/dir/${origenLat},${origenLng}/${lat},${lng}`;
-          window.open(url, '_blank');
-          this.mostrarMensaje('Abriendo ruta en Google Maps...', 'medium');
-        },
-        (error) => {
-          // Si no se puede obtener la ubicación actual, abrir solo el destino
-          this.abrirEnGoogleMaps();
-        }
-      );
-    } else {
-      this.abrirEnGoogleMaps();
-    }
-  }
-
-  async guardarUbicacion() {
-    if (this.latitude() === null || this.longitude() === null) {
-      this.mostrarMensaje('No hay ubicación disponible para guardar', 'warning');
-      return;
-    }
-
-    if (!this.userId()) {
-      this.mostrarMensaje('Usuario no identificado', 'danger');
-      return;
-    }
-
-    try {
-      this.mostrarMensaje('Guardando ubicación...', 'medium');
-      
-      await this.supabaseService.guardarUbicacion(
-        this.latitude()!,
-        this.longitude()!,
-        this.userId()!
-      );
-
-      this.mostrarMensaje('✅ Ubicación guardada exitosamente', 'success');
-      
-      console.log('Ubicación guardada:', {
-        lat: this.latitude(),
-        lng: this.longitude(),
-        userId: this.userId(),
-        timestamp: new Date().toISOString()
-      });
-
+      const encuestas = await this.supabaseService.obtenerEncuestas();
+      this.encuestas.set(encuestas || []);
+      this.encuestasFiltradas.set(encuestas || []);
     } catch (error: any) {
-      console.error('Error al guardar:', error);
-      this.mostrarMensaje('❌ Error al guardar ubicación: ' + (error.message || 'Error desconocido'), 'danger');
+      console.error('Error al cargar encuestas:', error);
+      this.mostrarMensaje('Error al cargar encuestas', 'danger');
+    } finally {
+      this.cargando.set(false);
     }
+  }
+
+  async eliminarEncuesta(id: string) {
+    try {
+      await this.supabaseService.eliminarEncuesta(id);
+      await this.cargarEncuestas();
+      this.mostrarMensaje('Encuesta eliminada correctamente', 'success');
+    } catch (error: any) {
+      console.error('Error al eliminar:', error);
+      this.mostrarMensaje('Error al eliminar encuesta', 'danger');
+    }
+  }
+
+  editarEncuesta(id: string) {
+    this.router.navigateByUrl(`/encuesta-form/${id}`);
+  }
+
+  verEnMapa(latitud: number, longitud: number) {
+    const url = `https://www.google.com/maps?q=${latitud},${longitud}&z=15`;
+    window.open(url, '_blank');
   }
 
   mostrarMensaje(mensaje: string, color: string = 'success') {
     this.toastMessage.set(mensaje);
     this.toastColor.set(color);
     this.showToast.set(true);
-    
     setTimeout(() => {
       this.showToast.set(false);
     }, 3000);
@@ -244,21 +181,23 @@ export class HomePage implements OnInit, OnDestroy {
 
   async logout() {
     try {
-      if (this.watchId) {
-        await this.detenerSeguimiento();
-      }
-      
       await this.supabaseService.logout();
       localStorage.removeItem('user');
       this.router.navigateByUrl('/login');
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
-      this.errorMsg.set('Error al cerrar sesión');
+      this.mostrarMensaje('Error al cerrar sesión', 'danger');
     }
   }
 
-  ngOnDestroy() {
-    if (this.watchId) this.loc.clearWatch(this.watchId);
+  confirmarEliminar(id: string) {
+    this.encuestaAEliminar = id;
+    this.mostrarAlertEliminar = true;
   }
+
+  async crearEncuesta() {
+    this.router.navigateByUrl('/encuesta-form');
+  }
+
 
 }

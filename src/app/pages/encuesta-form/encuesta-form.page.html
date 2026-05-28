@@ -1,0 +1,151 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ esEdicion ? 'Editar Encuesta' : 'Nueva Encuesta' }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <form (ngSubmit)="guardarEncuesta()">
+    <!-- Datos personales -->
+    <ion-card>
+      <ion-card-content>
+        <ion-item>
+          <ion-label position="floating">Nombre o alias *</ion-label>
+          <ion-input [(ngModel)]="encuesta.nombre_alias" name="nombre_alias" required></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="stacked">Rango de edad</ion-label>
+          <ion-select [(ngModel)]="encuesta.edad_rango" name="edad_rango">
+            <ion-select-option *ngFor="let rango of rangosEdad" [value]="rango">{{ rango }}</ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="stacked">Rol</ion-label>
+          <ion-select [(ngModel)]="encuesta.rol" name="rol">
+            <ion-select-option *ngFor="let rol of roles" [value]="rol">{{ rol }}</ion-select-option>
+          </ion-select>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Preferencias de videojuegos -->
+    <ion-card>
+      <ion-card-content>
+        <ion-item>
+          <ion-label position="floating">Videojuego favorito</ion-label>
+          <ion-input [(ngModel)]="encuesta.videojuego_favorito" name="videojuego_favorito"></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="stacked">Plataforma</ion-label>
+          <ion-select [(ngModel)]="encuesta.plataforma" name="plataforma">
+            <ion-select-option *ngFor="let plataforma of plataformas" [value]="plataforma">{{ plataforma }}</ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="stacked">Género favorito</ion-label>
+          <ion-select [(ngModel)]="encuesta.genero_favorito" name="genero_favorito">
+            <ion-select-option *ngFor="let genero of generos" [value]="genero">{{ genero }}</ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="floating">Comentario breve</ion-label>
+          <ion-textarea [(ngModel)]="encuesta.comentario" name="comentario" rows="3"></ion-textarea>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Ubicación (Opcional) -->
+    <ion-card>
+      <ion-card-content>
+        <ion-item>
+          <ion-label>Incluir ubicación</ion-label>
+          <ion-checkbox slot="end" [(ngModel)]="encuesta.incluir_ubicacion" name="incluir_ubicacion"></ion-checkbox>
+        </ion-item>
+        
+        <div *ngIf="encuesta.incluir_ubicacion">
+          <ion-button 
+            expand="block" 
+            color="secondary" 
+            (click)="obtenerUbicacion()"
+            [disabled]="obteniendoUbicacion">
+            <ion-icon name="location-outline" slot="start"></ion-icon>
+            {{ obteniendoUbicacion ? 'Obteniendo ubicación...' : 'Obtener ubicación actual' }}
+          </ion-button>
+          
+          <div *ngIf="encuesta.latitud && encuesta.longitud" class="ubicacion-info">
+            <p><strong>Latitud:</strong> {{ encuesta.latitud | number:'1.6-6' }}</p>
+            <p><strong>Longitud:</strong> {{ encuesta.longitud | number:'1.6-6' }}</p>
+            <ion-item>
+              <ion-label position="stacked">Lugar en el campus</ion-label>
+              <ion-select [(ngModel)]="encuesta.lugar_campus" name="lugar_campus">
+                <ion-select-option *ngFor="let lugar of lugaresCampus" [value]="lugar">{{ lugar }}</ion-select-option>
+              </ion-select>
+            </ion-item>
+          </div>
+          
+          <div *ngIf="!encuesta.latitud || !encuesta.longitud" class="ubicacion-info sin-ubicacion">
+            <ion-text color="medium">
+              <small>No se ha obtenido ubicación aún. Presiona el botón para obtener tu ubicación actual.</small>
+            </ion-text>
+          </div>
+        </div>
+        
+        <div *ngIf="!encuesta.incluir_ubicacion" class="ubicacion-info sin-ubicacion">
+          <ion-text color="medium">
+            <small>⚠️ La ubicación no será incluida en esta encuesta</small>
+          </ion-text>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Imagen -->
+    <ion-card>
+      <ion-card-content>
+        <ion-label position="stacked">Imagen (máx. 500KB)</ion-label>
+        
+        <div class="imagen-container" *ngIf="imagenSeleccionada">
+          <ion-avatar class="imagen-preview">
+            <img [src]="imagenSeleccionada" alt="Imagen de encuesta">
+          </ion-avatar>
+          <ion-button fill="clear" color="danger" (click)="eliminarImagen()">
+            <ion-icon name="trash" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
+        
+        <ion-button expand="block" fill="outline" (click)="seleccionarImagen()" *ngIf="!imagenSeleccionada">
+          <ion-icon name="camera" slot="start"></ion-icon>
+          Seleccionar imagen
+        </ion-button>
+        
+        <ion-text color="medium" class="ayuda-texto">
+          <small>Formatos permitidos: JPG, PNG. Tamaño máximo: 500KB</small>
+        </ion-text>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Botones de acción -->
+    <ion-button expand="block" type="submit" class="ion-margin-top">
+      {{ esEdicion ? 'Actualizar Encuesta' : 'Guardar Encuesta' }}
+    </ion-button>
+    
+    <ion-button expand="block" fill="outline" (click)="cancelar()">
+      Cancelar
+    </ion-button>
+  </form>
+</ion-content>
+
+<ion-toast
+  [isOpen]="mostrarToast"
+  [message]="mensajeToast"
+  [color]="colorToast"
+  [duration]="3000"
+  position="bottom">
+</ion-toast>

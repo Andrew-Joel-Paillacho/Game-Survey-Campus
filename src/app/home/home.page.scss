@@ -1,27 +1,274 @@
-#container {
-  text-align: center;
-
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
+.responsive-toolbar {
+  --min-height: auto;
+  
+  .toolbar-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 8px 16px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  
+  ion-title {
+    flex: 1;
+    font-size: 20px;
+    padding: 0;
+  }
+  
+  .buttons-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
 }
 
-#container strong {
-  font-size: 20px;
-  line-height: 26px;
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  background: var(--ion-color-primary);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 18px;
 }
 
-#container p {
-  font-size: 16px;
-  line-height: 22px;
-
-  color: #8c8c8c;
-
+.user-chip {
+  --background: var(--ion-color-light);
+  border-radius: 8px;
   margin: 0;
+  height: 40px;
+  
+  ion-label {
+    font-size: 14px;
+    font-weight: 500;
+  }
+  
+  @media (max-width: 480px) {
+    ion-label {
+      display: none;
+    }
+    
+    ion-avatar {
+      margin: 0;
+    }
+  }
 }
 
-#container a {
-  text-decoration: none;
+.logout-button-rect {
+  --border-radius: 8px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  height: 40px;
+  margin: 0;
+  font-weight: 500;
+  
+  ion-icon {
+    font-size: 20px;
+    margin-right: 6px;
+  }
+  
+  .logout-text {
+    font-size: 14px;
+  }
+  
+  @media (max-width: 380px) {
+    --padding-start: 8px;
+    --padding-end: 8px;
+    
+    .logout-text {
+      display: none;
+    }
+    
+    ion-icon {
+      margin-right: 0;
+    }
+  }
+  
+  @media (min-width: 381px) and (max-width: 576px) {
+    --padding-start: 10px;
+    --padding-end: 10px;
+    
+    .logout-text {
+      font-size: 12px;
+    }
+    
+    ion-icon {
+      font-size: 18px;
+      margin-right: 4px;
+    }
+  }
+}
+
+// APILADO VERTICAL: cuando el ancho es muy pequeño
+@media (max-width: 480px) {
+  .responsive-toolbar {
+    .toolbar-content {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+      padding: 12px;
+    }
+    
+    ion-title {
+      text-align: center;
+      font-size: 18px;
+      margin-bottom: 4px;
+    }
+    
+    .buttons-group {
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+  }
+}
+
+// Para móviles aún más pequeños
+@media (max-width: 380px) {
+  .buttons-group {
+    flex-direction: column;
+    width: 100%;
+    
+    ion-chip,
+    .logout-button-rect {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+}
+
+
+
+.loading-container, .empty-container {
+  text-align: center;
+  padding: 40px 20px;
+  
+  ion-spinner {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 15px;
+  }
+}
+
+.encuesta-card {
+  margin-bottom: 20px;
+  animation: fadeIn 0.5s ease-in;
+  
+  .encuesta-imagen {
+    width: 100%;
+    max-height: 250px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 15px;
+  }
+  
+  .datos-encuestado, .preferencias, .ubicacion-section {
+    margin-bottom: 20px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--ion-color-light);
+    
+    h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin: 10px 0;
+      color: var(--ion-color-primary);
+    }
+    
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+  
+  .ubicacion-section {
+    background: linear-gradient(135deg, var(--ion-color-light) 0%, var(--ion-color-light-shade) 100%);
+    border-radius: 12px;
+    padding: 15px;
+    margin-top: 15px;
+    
+    h3 {
+      margin-top: 0;
+      color: var(--ion-color-tertiary);
+    }
+  }
+  
+  .ubicacion-completa {
+    .ubicacion-detalles {
+      background: transparent;
+      
+      .ubicacion-item {
+        --padding-start: 0;
+        --inner-padding-end: 0;
+        margin-bottom: 12px;
+        
+        .valor-ubicacion {
+          margin: 5px 0 0 0;
+          font-size: 0.95rem;
+          font-family: 'Courier New', monospace;
+          font-weight: 500;
+        }
+      }
+    }
+    
+    .acciones-mapa {
+      margin-top: 15px;
+      
+      .mapa-btn {
+        --border-radius: 10px;
+        margin: 0;
+      }
+    }
+  }
+  
+  .ubicacion-no-disponible {
+    text-align: center;
+    padding: 20px;
+    
+    .icono-ubicacion {
+      font-size: 48px;
+      color: var(--ion-color-medium);
+      margin-bottom: 10px;
+    }
+    
+    .ubicacion-privado {
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: var(--ion-color-warning);
+      margin: 10px 0;
+    }
+  }
+  
+  .botones-accion {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid var(--ion-color-light);
+  }
+}
+
+// Animación
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .encuesta-card {
+    .ubicacion-detalles {
+      .ubicacion-item {
+        font-size: 0.9rem;
+      }
+    }
+  }
 }

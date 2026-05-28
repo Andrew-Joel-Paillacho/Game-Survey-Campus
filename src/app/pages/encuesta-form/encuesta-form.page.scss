@@ -1,0 +1,33 @@
+.ubicacion-info {
+  margin-top: 15px;
+  padding: 10px;
+  background: var(--ion-color-light);
+  border-radius: 8px;
+  
+  p {
+    margin: 5px 0;
+    font-size: 14px;
+  }
+}
+
+.imagen-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin: 15px 0;
+  
+  .imagen-preview {
+    width: 80px;
+    height: 80px;
+    
+    img {
+      object-fit: cover;
+    }
+  }
+}
+
+.ayuda-texto {
+  display: block;
+  margin-top: 10px;
+  font-size: 12px;
+}
