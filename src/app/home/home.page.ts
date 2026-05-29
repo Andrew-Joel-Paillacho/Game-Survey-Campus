@@ -32,6 +32,7 @@ import { SupabaseService, Encuesta } from '../services/supabase.service';
 import { addIcons } from 'ionicons';
 import { add, create, trash, map } from 'ionicons/icons';
 import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-home',
@@ -53,6 +54,7 @@ import { FormsModule } from '@angular/forms';
     IonToast,
     DatePipe,
     DecimalPipe,
+    CommonModule,
     FormsModule,
     IonFab,
     IonFabButton,
@@ -196,5 +198,36 @@ export class HomePage implements OnInit {
     this.router.navigateByUrl('/encuesta-form');
   }
 
+  verSitioWeb(url: string) {
+    if (url) {
+      window.open(url, '_blank');
+    }
+  }
+
+  // Obtener géneros como string
+  getGeneros(encuesta: Encuesta): string {
+    if (!encuesta.rawg_game_data?.genres) return 'N/E';
+    return encuesta.rawg_game_data.genres.map((g: any) => g.name).join(', ');
+  }
+
+  // Obtener plataformas como string
+  getPlataformas(encuesta: Encuesta): string {
+    if (!encuesta.rawg_game_data?.platforms) return 'N/E';
+    return encuesta.rawg_game_data.platforms.slice(0, 3).map((p: any) => p.platform.name).join(', ');
+  }
+
+  // Obtener desarrolladores como string
+  getDesarrolladores(encuesta: Encuesta): string {
+    if (!encuesta.rawg_game_data?.developers) return 'N/E';
+    return encuesta.rawg_game_data.developers.map((d: any) => d.name).join(', ');
+  }
+
+  // Obtener descripción corta
+  getDescripcionCorta(encuesta: Encuesta): string {
+    if (!encuesta.rawg_game_data?.description_raw) return '';
+    return encuesta.rawg_game_data.description_raw.length > 200 
+      ? encuesta.rawg_game_data.description_raw.substring(0, 200) + '...' 
+      : encuesta.rawg_game_data.description_raw;
+  }
 
 }

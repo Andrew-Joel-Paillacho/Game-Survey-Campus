@@ -31,3 +31,90 @@
   margin-top: 10px;
   font-size: 12px;
 }
+
+// Estilos para la API de RAWG
+.api-search-section {
+  margin-bottom: 20px;
+}
+
+.search-container {
+  margin: 15px 0;
+}
+
+.resultados-busqueda {
+  margin-top: 15px;
+  max-height: 400px;
+  overflow-y: auto;
+  
+  ion-item {
+    --padding-start: 8px;
+    cursor: pointer;
+    
+    &:hover {
+      --background: var(--ion-color-light);
+    }
+  }
+  
+  ion-avatar {
+    width: 50px;
+    height: 50px;
+  }
+}
+
+.avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ion-color-primary);
+  color: white;
+  font-size: 24px;
+  border-radius: 50%;
+}
+
+.juego-seleccionado {
+  background: linear-gradient(135deg, var(--ion-color-light) 0%, var(--ion-color-light-shade) 100%);
+  border-radius: 12px;
+  padding: 15px;
+  margin: 15px 0;
+  
+  .juego-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    
+    .juego-avatar {
+      width: 60px;
+      height: 60px;
+    }
+    
+    .juego-info {
+      flex: 1;
+      
+      h3 {
+        margin: 0 0 5px 0;
+        font-size: 1.1rem;
+      }
+      
+      .juego-meta {
+        display: flex;
+        gap: 8px;
+      }
+    }
+  }
+  
+  .juego-detalles {
+    p {
+      margin: 8px 0;
+      font-size: 0.9rem;
+    }
+  }
+}
+
+.campos-manuales {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid var(--ion-color-medium);
+}

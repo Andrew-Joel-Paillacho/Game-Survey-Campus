@@ -18,6 +18,9 @@ export interface Encuesta {
   user_id: string;
   created_at?: string;
   incluir_ubicacion?: boolean; // Campo para controlar si se incluye ubicación
+  // Nuevos campos para datos de API
+  rawg_game_id?: number;
+  rawg_game_data?: any; 
 }
 
 @Injectable({

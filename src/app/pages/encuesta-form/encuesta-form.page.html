@@ -33,29 +33,118 @@
       </ion-card-content>
     </ion-card>
 
-    <!-- Preferencias de videojuegos -->
+    <!-- Preferencias de videojuegos con API -->
     <ion-card>
+      <ion-card-header>
+        <ion-label>
+          <h2>🎮 Información del Videojuego</h2>
+        </ion-label>
+      </ion-card-header>
       <ion-card-content>
-        <ion-item>
-          <ion-label position="floating">Videojuego favorito</ion-label>
-          <ion-input [(ngModel)]="encuesta.videojuego_favorito" name="videojuego_favorito"></ion-input>
+        <!-- Búsqueda de juego por API -->
+        <div class="api-search-section" *ngIf="!datosApiObtenidos">
+          <ion-text color="primary">
+            <h3>Buscar juego en RAWG API</h3>
+          </ion-text>
+          
+          <div class="search-container">
+            <ion-item>
+              <ion-input 
+                [(ngModel)]="busquedaJuego" 
+                name="busquedaJuego"
+                placeholder="Ej: The Legend of Zelda, Minecraft..."
+                clearInput>
+              </ion-input>
+              <ion-button slot="end" (click)="buscarJuegoEnApi()" [disabled]="buscandoJuego">
+                <ion-icon name="search" slot="start"></ion-icon>
+                Buscar
+              </ion-button>
+            </ion-item>
+          </div>
+
+          <!-- Resultados de búsqueda -->
+          <div *ngIf="mostrarResultados" class="resultados-busqueda">
+            <ion-spinner *ngIf="buscandoJuego" name="crescent"></ion-spinner>
+            
+            <ion-list *ngIf="resultadosBusqueda.length > 0 && !buscandoJuego">
+              <ion-radio-group>
+                <ion-item *ngFor="let juego of resultadosBusqueda" (click)="seleccionarJuego(juego)">
+                  <ion-avatar slot="start">
+                    <img [src]="juego.background_image" [alt]="juego.name" *ngIf="juego.background_image">
+                    <div class="avatar-placeholder" *ngIf="!juego.background_image">🎮</div>
+                  </ion-avatar>
+                  <ion-label>
+                    <h3>{{ juego.name }}</h3>
+                    <p>
+                      <ion-badge color="warning">⭐ {{ juego.rating }}/5</ion-badge>
+                      <span *ngIf="juego.released"> | {{ juego.released | date:'yyyy' }}</span>
+                    </p>
+                  </ion-label>
+                </ion-item>
+              </ion-radio-group>
+            </ion-list>
+          </div>
+        </div>
+
+        <!-- Juego seleccionado mostrando datos de API -->
+        <div *ngIf="datosApiObtenidos && juegoSeleccionado" class="juego-seleccionado">
+          <div class="juego-header">
+            <ion-avatar class="juego-avatar">
+              <img [src]="juegoSeleccionado.background_image" *ngIf="juegoSeleccionado.background_image">
+              <div class="avatar-placeholder" *ngIf="!juegoSeleccionado.background_image">🎮</div>
+            </ion-avatar>
+            <div class="juego-info">
+              <h3>{{ juegoSeleccionado.name }}</h3>
+              <div class="juego-meta">
+                <ion-badge color="warning">⭐ {{ juegoSeleccionado.rating }}/5</ion-badge>
+                <ion-badge color="tertiary" *ngIf="juegoSeleccionado.metacritic">
+                  🎯 {{ juegoSeleccionado.metacritic }}
+                </ion-badge>
+              </div>
+            </div>
+            <ion-button fill="clear" color="danger" (click)="limpiarSeleccionJuego()">
+              <ion-icon name="close"></ion-icon>
+            </ion-button>
+          </div>
+          
+          <div class="juego-detalles">
+            <p><strong>📅 Lanzamiento:</strong> {{ juegoSeleccionado.released | date:'dd/MM/yyyy' }}</p>
+            <p><strong>🎭 Géneros:</strong> {{ getGenerosTexto() }}</p>
+            <p><strong>🖥️ Plataformas:</strong> {{ getPlataformasTexto() }}</p>
+            <p *ngIf="juegoSeleccionado.developers?.length">
+              <strong>👨‍💻 Desarrolladores:</strong> {{ getDesarrolladoresTexto() }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Campos manuales (si no se usó API o se quiere editar) -->
+        <div class="campos-manuales" *ngIf="!datosApiObtenidos">
+          <ion-item>
+            <ion-label position="floating">Videojuego favorito *</ion-label>
+            <ion-input [(ngModel)]="encuesta.videojuego_favorito" name="videojuego_favorito"></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Plataforma</ion-label>
+            <ion-select [(ngModel)]="encuesta.plataforma" name="plataforma">
+              <ion-select-option *ngFor="let plataforma of plataformas" [value]="plataforma">{{ plataforma }}</ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Género favorito</ion-label>
+            <ion-select [(ngModel)]="encuesta.genero_favorito" name="genero_favorito">
+              <ion-select-option *ngFor="let genero of generos" [value]="genero">{{ genero }}</ion-select-option>
+            </ion-select>
+          </ion-item>
+        </div>
+
+        <ion-item *ngIf="datosApiObtenidos">
+          <ion-label position="floating">Comentario del juego (opcional)</ion-label>
+          <ion-textarea [(ngModel)]="encuesta.comentario" name="comentario" rows="3"></ion-textarea>
         </ion-item>
 
-        <ion-item>
-          <ion-label position="stacked">Plataforma</ion-label>
-          <ion-select [(ngModel)]="encuesta.plataforma" name="plataforma">
-            <ion-select-option *ngFor="let plataforma of plataformas" [value]="plataforma">{{ plataforma }}</ion-select-option>
-          </ion-select>
-        </ion-item>
-
-        <ion-item>
-          <ion-label position="stacked">Género favorito</ion-label>
-          <ion-select [(ngModel)]="encuesta.genero_favorito" name="genero_favorito">
-            <ion-select-option *ngFor="let genero of generos" [value]="genero">{{ genero }}</ion-select-option>
-          </ion-select>
-        </ion-item>
-
-        <ion-item>
+        <ion-item *ngIf="!datosApiObtenidos">
           <ion-label position="floating">Comentario breve</ion-label>
           <ion-textarea [(ngModel)]="encuesta.comentario" name="comentario" rows="3"></ion-textarea>
         </ion-item>

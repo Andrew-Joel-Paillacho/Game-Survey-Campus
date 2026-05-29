@@ -1,0 +1,14 @@
+{
+  "/api": {
+    "target": "https://api.rawg.io",
+    "secure": true,
+    "changeOrigin": true,
+    "logLevel": "debug",
+    "pathRewrite": {
+      "^/api": ""
+    },
+    "headers": {
+      "Access-Control-Allow-Origin": "*"
+    }
+  }
+}

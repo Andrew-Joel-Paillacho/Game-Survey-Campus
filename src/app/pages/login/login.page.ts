@@ -1,16 +1,9 @@
 import { Component } from '@angular/core';
 import {
-  IonHeader,
-  IonToolbar,
-  IonTitle,
   IonContent,
   IonItem,
-  IonLabel,
   IonInput,
   IonButton,
-  IonText,
-  IonCard,
-  IonCardContent,
   IonIcon
 } from '@ionic/angular/standalone';
 
@@ -51,17 +44,10 @@ import {
   imports: [
     CommonModule,
     FormsModule,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
     IonContent,
     IonItem,
-    IonLabel,
     IonInput,
     IonButton,
-    IonText,
-    IonCard,
-    IonCardContent,
     IonIcon
   ]
 })

@@ -14,21 +14,27 @@ import {
   IonText,
   IonCard,
   IonCardContent,
+  IonCardHeader,
   IonIcon,
   IonButtons,
   IonBackButton,
   IonToast,
   IonAvatar,
-  IonCheckbox
+  IonCheckbox,
+  IonSpinner,
+  IonList,
+  IonRadioGroup,
+  IonBadge
 } from '@ionic/angular/standalone';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { SupabaseService, Encuesta } from '../../services/supabase.service';
 import { LocationService } from '../../services/location';
+import { RawgService, RawgGame } from '../../services/rawg.service';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { addIcons } from 'ionicons';
-import { camera, trash, close, locationOutline } from 'ionicons/icons';
+import { camera, trash, close, locationOutline, gameController, search } from 'ionicons/icons';
 
 @Component({
   selector: 'app-encuesta-form',
@@ -57,7 +63,12 @@ import { camera, trash, close, locationOutline } from 'ionicons/icons';
     IonBackButton,
     IonToast,
     IonAvatar,
-    IonCheckbox
+    IonCheckbox,
+    IonSpinner,
+    IonList,
+    IonRadioGroup,
+    IonBadge, 
+    IonCardHeader
   ]
 })
 export class EncuestaFormPage implements OnInit {
@@ -69,7 +80,7 @@ export class EncuestaFormPage implements OnInit {
     plataforma: '',
     genero_favorito: '',
     comentario: '',
-    incluir_ubicacion: false  // Nuevo campo para controlar si incluir ubicación
+    incluir_ubicacion: false
   };
   
   esEdicion = false;
@@ -82,52 +93,36 @@ export class EncuestaFormPage implements OnInit {
   colorToast = 'success';
   obteniendoUbicacion = false;
   
-  // Opciones para selects
-  rangosEdad = [
-    'Menos de 18',
-    '18-24',
-    '25-34',
-    '35-44',
-    '45-54',
-    '55 o más'
-  ];
+  // Variables para RAWG API
+  busquedaJuego = '';
+  resultadosBusqueda: RawgGame[] = [];
+  buscandoJuego = false;
+  juegoSeleccionado: RawgGame | null = null;
+  mostrarResultados = false;
+  datosApiObtenidos = false;
   
+  rangosEdad = ['Menos de 18', '18-24', '25-34', '35-44', '45-54', '55 o más'];
   roles = ['Estudiante', 'Docente', 'Administrativo', 'Visitante'];
-  
   plataformas = ['Móvil', 'Consola', 'PC', 'Navegador'];
-  
   generos = ['Acción', 'Aventura', 'Deportes', 'Estrategia', 'RPG', 'Terror', 'Simulación', 'Otro'];
-  
-  lugaresCampus = [
-    'Biblioteca',
-    'Aulas',
-    'Laboratorios',
-    'Cafetería',
-    'Áreas verdes',
-    'Estacionamiento',
-    'Gimnasio',
-    'Auditorio',
-    'Otro'
-  ];
+  lugaresCampus = ['Biblioteca', 'Aulas', 'Laboratorios', 'Cafetería', 'Áreas verdes', 'Estacionamiento', 'Gimnasio', 'Auditorio', 'Otro'];
 
   constructor(
     private supabaseService: SupabaseService,
     private locationService: LocationService,
+    private rawgService: RawgService,
     private router: Router,
     private route: ActivatedRoute
   ) {
-    addIcons({ camera, trash, close, locationOutline });
+    addIcons({ camera, trash, close, locationOutline, gameController, search });
   }
 
   async ngOnInit() {
-    // Verificar si es edición
     this.encuestaId = this.route.snapshot.paramMap.get('id');
     if (this.encuestaId) {
       this.esEdicion = true;
       await this.cargarEncuesta();
     }
-    
-    // Obtener usuario actual
     await this.cargarUsuario();
   }
 
@@ -154,15 +149,83 @@ export class EncuestaFormPage implements OnInit {
       const encuesta = encuestas.find(e => e.id === this.encuestaId);
       if (encuesta) {
         this.encuesta = encuesta;
-        // Verificar si tiene ubicación
         this.encuesta.incluir_ubicacion = !!(encuesta.latitud && encuesta.longitud);
         if (encuesta.imagen_url) {
           this.imagenSeleccionada = encuesta.imagen_url;
+        }
+        
+        // Cargar datos de API si existen
+        if (encuesta.rawg_game_data) {
+          this.juegoSeleccionado = encuesta.rawg_game_data;
+          this.datosApiObtenidos = true;
+          this.encuesta.videojuego_favorito = encuesta.rawg_game_data.name;
         }
       }
     } catch (error) {
       console.error('Error al cargar encuesta:', error);
     }
+  }
+
+  async buscarJuegoEnApi() {
+    if (!this.busquedaJuego.trim()) {
+      this.mostrarMensaje('Ingresa el nombre de un juego para buscar', 'warning');
+      return;
+    }
+
+    this.buscandoJuego = true;
+    this.mostrarResultados = true;
+    
+    try {
+      this.resultadosBusqueda = await this.rawgService.buscarJuego(this.busquedaJuego);
+      if (this.resultadosBusqueda.length === 0) {
+        this.mostrarMensaje('No se encontraron juegos con ese nombre', 'warning');
+      }
+    } catch (error: any) {
+      console.error('Error al buscar:', error);
+      this.mostrarMensaje('Error al buscar el juego. Verifica tu conexión o la API key', 'danger');
+    } finally {
+      this.buscandoJuego = false;
+    }
+  }
+
+  async seleccionarJuego(juego: RawgGame) {
+    this.buscandoJuego = true;
+    
+    try {
+      // Obtener detalles completos del juego
+      const detallesCompletos = await this.rawgService.obtenerDetallesJuego(juego.id);
+      this.juegoSeleccionado = detallesCompletos;
+      
+      // Actualizar campos del formulario con la información del juego
+      this.encuesta.videojuego_favorito = detallesCompletos.name;
+      this.encuesta.genero_favorito = detallesCompletos.genres[0]?.name || this.encuesta.genero_favorito;
+      
+      // Almacenar datos completos de la API
+      this.encuesta.rawg_game_id = detallesCompletos.id;
+      this.encuesta.rawg_game_data = detallesCompletos;
+      
+      this.datosApiObtenidos = true;
+      this.mostrarResultados = false;
+      this.busquedaJuego = '';
+      
+      this.mostrarMensaje(`Información de "${detallesCompletos.name}" cargada exitosamente`, 'success');
+    } catch (error) {
+      console.error('Error al obtener detalles:', error);
+      this.mostrarMensaje('Error al cargar los detalles del juego', 'danger');
+    } finally {
+      this.buscandoJuego = false;
+    }
+  }
+
+  limpiarSeleccionJuego() {
+    this.juegoSeleccionado = null;
+    this.datosApiObtenidos = false;
+    this.encuesta.videojuego_favorito = '';
+    this.encuesta.rawg_game_id = undefined;
+    this.encuesta.rawg_game_data = undefined;
+    this.resultadosBusqueda = [];
+    this.mostrarResultados = false;
+    this.busquedaJuego = '';
   }
 
   async seleccionarImagen() {
@@ -174,7 +237,6 @@ export class EncuestaFormPage implements OnInit {
         source: CameraSource.Photos
       });
       
-      // Verificar tamaño (500KB = 500 * 1024 bytes)
       if (image.webPath) {
         const response = await fetch(image.webPath);
         const blob = await response.blob();
@@ -185,8 +247,6 @@ export class EncuestaFormPage implements OnInit {
         }
         
         this.imagenSeleccionada = image.webPath;
-        
-        // Convertir a File
         const fileName = `image_${Date.now()}.jpg`;
         this.imagenArchivo = new File([blob], fileName, { type: 'image/jpeg' });
       }
@@ -202,7 +262,6 @@ export class EncuestaFormPage implements OnInit {
 
   async obtenerUbicacion() {
     if (!this.encuesta.incluir_ubicacion) {
-      // Limpiar ubicación si se desactiva
       this.encuesta.latitud = undefined;
       this.encuesta.longitud = undefined;
       this.encuesta.lugar_campus = undefined;
@@ -228,12 +287,10 @@ export class EncuestaFormPage implements OnInit {
   }
 
   async cancelar() {
-    console.log('Cancelando, regresando a Home');
     this.router.navigateByUrl('/home');
   }
 
   async guardarEncuesta() {
-    // Validaciones
     if (!this.encuesta.nombre_alias) {
       this.mostrarMensaje('Por favor ingrese el nombre o alias', 'danger');
       return;
@@ -244,7 +301,6 @@ export class EncuestaFormPage implements OnInit {
       return;
     }
     
-    // Si no incluye ubicación, limpiar los campos de ubicación
     if (!this.encuesta.incluir_ubicacion) {
       this.encuesta.latitud = undefined;
       this.encuesta.longitud = undefined;
@@ -266,7 +322,9 @@ export class EncuestaFormPage implements OnInit {
         longitud: this.encuesta.incluir_ubicacion ? this.encuesta.longitud : null,
         lugar_campus: this.encuesta.incluir_ubicacion ? this.encuesta.lugar_campus : null,
         user_id: this.userId,
-        created_at: this.esEdicion ? this.encuesta.created_at : fechaActual.toISOString()
+        created_at: this.esEdicion ? this.encuesta.created_at : fechaActual.toISOString(),
+        rawg_game_id: this.encuesta.rawg_game_id,
+        rawg_game_data: this.encuesta.rawg_game_data
       };
       
       if (this.esEdicion) {
@@ -300,5 +358,24 @@ export class EncuestaFormPage implements OnInit {
     setTimeout(() => {
       this.mostrarToast = false;
     }, 3000);
+  }
+
+
+  // Obtener géneros como string
+  getGenerosTexto(): string {
+    if (!this.juegoSeleccionado?.genres) return 'N/E';
+    return this.juegoSeleccionado.genres.map(g => g.name).join(', ');
+  }
+
+  // Obtener plataformas como string
+  getPlataformasTexto(): string {
+    if (!this.juegoSeleccionado?.platforms) return 'N/E';
+    return this.juegoSeleccionado.platforms.slice(0, 3).map(p => p.platform.name).join(', ');
+  }
+
+  // Obtener desarrolladores como string
+  getDesarrolladoresTexto(): string {
+    if (!this.juegoSeleccionado?.developers) return 'N/E';
+    return this.juegoSeleccionado.developers.map(d => d.name).join(', ');
   }
 }

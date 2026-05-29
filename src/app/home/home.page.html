@@ -108,6 +108,40 @@
                   <p><strong>Género favorito:</strong> {{ encuesta.genero_favorito || 'N/E' }}</p>
                 </ion-col>
               </ion-row>
+
+
+              <!-- Mostrar datos de API si existen -->
+              <ion-row *ngIf="encuesta.rawg_game_data" class="rawg-data-section">
+                <ion-col size="12">
+                  <h3>🎮 Datos de RAWG API</h3>
+                  <div class="rawg-info">
+                    <div class="rawg-header" *ngIf="encuesta.rawg_game_data.background_image">
+                      <img [src]="encuesta.rawg_game_data.background_image" class="rawg-game-image" alt="Game image">
+                    </div>
+                    <div class="rawg-details">
+                      <p><strong>⭐ Rating:</strong> {{ encuesta.rawg_game_data.rating }}/5 ({{ encuesta.rawg_game_data.ratings_count }} votos)</p>
+                      <p *ngIf="encuesta.rawg_game_data.metacritic"><strong>🎯 Metacritic:</strong> {{ encuesta.rawg_game_data.metacritic }}</p>
+                      <p><strong>📅 Lanzamiento:</strong> {{ encuesta.rawg_game_data.released | date:'dd/MM/yyyy' }}</p>
+                      <p><strong>🎭 Géneros:</strong> {{ getGeneros(encuesta) }}</p>
+                      <p><strong>🖥️ Plataformas:</strong> {{ getPlataformas(encuesta) }}</p>
+                      <p *ngIf="encuesta.rawg_game_data.developers?.length">
+                        <strong>👨‍💻 Desarrolladores:</strong> {{ getDesarrolladores(encuesta) }}
+                      </p>
+                      <p *ngIf="getDescripcionCorta(encuesta)">
+                        <strong>📝 Descripción:</strong> {{ getDescripcionCorta(encuesta) }}
+                      </p>
+                      <ion-button *ngIf="encuesta.rawg_game_data.website" 
+                                fill="clear" 
+                                size="small" 
+                                (click)="verSitioWeb(encuesta.rawg_game_data.website)">
+                        <ion-icon name="open-outline" slot="start"></ion-icon>
+                        Ver sitio oficial
+                      </ion-button>
+                    </div>
+                  </div>
+                </ion-col>
+              </ion-row>
+
               
               <!-- Comentario -->
               <ion-row *ngIf="encuesta.comentario">
