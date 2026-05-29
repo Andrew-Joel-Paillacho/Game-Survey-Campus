@@ -32,7 +32,15 @@ import {
   lockClosedOutline,
   arrowForwardOutline,
   logInOutline,
-  alertCircleOutline
+  alertCircleOutline,
+  gameControllerOutline,
+  schoolOutline,
+  shieldCheckmarkOutline,
+  heartOutline,
+  heartCircleOutline,
+  timeOutline,
+  bulbOutline,
+  peopleCircleOutline
 } from 'ionicons/icons';
 
 @Component({
@@ -62,6 +70,8 @@ export class LoginPage {
   password = '';
   mensaje = '';
   isRegisterMode = false;
+  isError = false;
+  private timeoutId: any;
 
   constructor(
     private supabaseService: SupabaseService,
@@ -80,20 +90,47 @@ export class LoginPage {
       lockClosedOutline,
       arrowForwardOutline,
       logInOutline,
-      alertCircleOutline
+      alertCircleOutline,
+      gameControllerOutline,
+      schoolOutline,
+      shieldCheckmarkOutline,
+      heartOutline,
+      heartCircleOutline,
+      timeOutline,
+      bulbOutline,
+      peopleCircleOutline
     });
   }
 
   toggleMode() {
     this.isRegisterMode = !this.isRegisterMode;
-    this.mensaje = ''; // Limpiar mensajes al cambiar modo
-    this.email = ''; // Opcional: limpiar campos
+    this.clearMessage();
+    this.email = '';
     this.password = '';
+  }
+
+  clearMessage() {
+    if (this.timeoutId) {
+      clearTimeout(this.timeoutId);
+    }
+    this.mensaje = '';
+    this.isError = false;
+  }
+
+  showMessage(text: string, isError: boolean = false) {
+    this.clearMessage();
+    this.mensaje = text;
+    this.isError = isError;
+    
+    // Auto-ocultar después de 3 segundos
+    this.timeoutId = setTimeout(() => {
+      this.mensaje = '';
+    }, 3000);
   }
 
   async login() {
     if (!this.email || !this.password) {
-      this.mensaje = 'Por favor completa todos los campos';
+      this.showMessage('❌ Por favor completa todos los campos', true);
       return;
     }
 
@@ -103,10 +140,11 @@ export class LoginPage {
     );
 
     if (error) {
-      this.mensaje = error.message;
+      this.showMessage(`❌ ${error.message}`, true);
       return;
     }
 
+    // Guardar datos del usuario
     if (data?.user) {
       localStorage.setItem('user', JSON.stringify({
         email: data.user.email,
@@ -115,12 +153,17 @@ export class LoginPage {
       }));
     }
 
-    this.router.navigateByUrl('/home');
+    this.showMessage('✅ ¡Inicio de sesión exitoso! Redirigiendo a la encuesta...', false);
+    
+    // Redirigir al home después de 1.5 segundos
+    setTimeout(() => {
+      this.router.navigateByUrl('/home');
+    }, 1500);
   }
 
   async register() {
     if (!this.email || !this.password) {
-      this.mensaje = 'Por favor completa todos los campos';
+      this.showMessage('❌ Por favor completa todos los campos', true);
       return;
     }
 
@@ -130,16 +173,16 @@ export class LoginPage {
     );
 
     if (error) {
-      this.mensaje = error.message;
+      this.showMessage(`❌ ${error.message}`, true);
       return;
     }
 
-    this.mensaje = '¡Registro exitoso! Revisa tu correo para confirmar tu cuenta.';
+    this.showMessage('✅ ¡Registro exitoso! Revisa tu correo para confirmar tu cuenta', false);
     
-    // Opcional: cambiar automáticamente al modo login después de 3 segundos
+    // Limpiar campos después del registro exitoso
     setTimeout(() => {
-      if (this.mensaje.includes('exitoso')) {
-        this.toggleMode();
+      if (!this.isError) {
+        this.toggleMode(); // Cambiar a modo login después de 3 segundos
       }
     }, 3000);
   }

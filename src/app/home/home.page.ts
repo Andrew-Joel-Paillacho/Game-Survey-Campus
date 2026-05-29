@@ -9,7 +9,6 @@ import {
   IonHeader, 
   IonTitle, 
   IonToolbar,
-  IonButtons,
   IonLabel,
   IonChip,
   IonAvatar,
@@ -27,7 +26,7 @@ import {
   IonList,
   IonItem,
 } from '@ionic/angular/standalone';
-import { NgIf, DatePipe, NgFor, SlicePipe, DecimalPipe } from '@angular/common';
+import { NgIf, DatePipe, NgFor, DecimalPipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { SupabaseService, Encuesta } from '../services/supabase.service';
 import { addIcons } from 'ionicons';
@@ -48,13 +47,11 @@ import { FormsModule } from '@angular/forms';
     IonCardContent,
     IonButton, 
     NgIf,
-    IonButtons,
     IonLabel,
     IonChip,
     IonAvatar,
     IonToast,
     DatePipe,
-    SlicePipe,
     DecimalPipe,
     FormsModule,
     IonFab,

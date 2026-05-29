@@ -1,16 +1,28 @@
 .main-content {
   --background: #000000;
   height: 100%;
+  
+  // Asegurar scroll vertical
+  --overflow-y: auto;
+  overflow-y: auto;
+  
+  &::part(scroll) {
+    overflow-y: auto;
+  }
 }
 
 .split-container {
   display: flex;
-  height: 100%;
+  min-height: 100%;
   position: relative;
-  overflow: hidden;
+  
+  // En móviles, permitir scroll vertical
+  @media (max-width: 768px) {
+    flex-direction: column;
+    min-height: auto;
+  }
 }
 
-// Columnas izquierda y derecha
 .left-column, .right-column {
   flex: 1;
   display: flex;
@@ -18,43 +30,41 @@
   justify-content: center;
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-}
-
-// Columna izquierda (Turquesa)
-.left-column {
-  background: linear-gradient(135deg, #00CED1 0%, #008B8B 100%);
-  position: relative;
-  overflow: hidden;
+  padding: 2rem;
+  min-height: 100vh;
   
-  &::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
-    animation: pulse 8s ease-in-out infinite;
+  // En móviles, altura automática
+  @media (max-width: 768px) {
+    min-height: auto;
+    padding: 3rem 1.5rem;
   }
 }
 
-@keyframes pulse {
-  0%, 100% { transform: scale(1); opacity: 0.3; }
-  50% { transform: scale(1.1); opacity: 0.5; }
+.left-column {
+  background: linear-gradient(135deg, #00CED1 0%, #008B8B 100%);
+  
+  &.form-side {
+    background: #0a0a0a;
+    box-shadow: 5px 0 20px rgba(0,0,0,0.5);
+  }
 }
 
-// Columna derecha (Negro)
 .right-column {
   background: #0a0a0a;
   box-shadow: -5px 0 20px rgba(0,0,0,0.5);
+  
+  &.info-side {
+    background: linear-gradient(135deg, #00CED1 0%, #008B8B 100%);
+    box-shadow: none;
+  }
 }
 
-// Wrapper de contenido
 .content-wrapper {
   text-align: center;
   color: white;
-  padding: 2rem;
-  z-index: 1;
+  padding: 1rem;
+  max-width: 500px;
+  width: 100%;
   animation: fadeInUp 0.6s ease-out;
 }
 
@@ -88,6 +98,10 @@ h1 {
   font-size: 2rem;
   margin-bottom: 1rem;
   font-weight: 700;
+  
+  @media (max-width: 768px) {
+    font-size: 1.5rem;
+  }
 }
 
 p {
@@ -119,23 +133,27 @@ p {
     ion-icon {
       font-size: 1.25rem;
       color: #ff4444;
+      flex-shrink: 0;
     }
     
     span {
       font-size: 0.9rem;
+      
+      @media (max-width: 768px) {
+        font-size: 0.85rem;
+      }
     }
   }
 }
 
-// Formulario
 .form-container {
-  width: 80%;
+  width: 100%;
   max-width: 400px;
-  padding: 2rem;
-  animation: fadeInRight 0.6s ease-out;
+  padding: 1rem;
+  animation: fadeInSide 0.6s ease-out;
 }
 
-@keyframes fadeInRight {
+@keyframes fadeInSide {
   from {
     opacity: 0;
     transform: translateX(30px);
@@ -163,7 +181,6 @@ p {
   }
 }
 
-// Items del formulario
 .custom-item {
   --background: #1a1a1a;
   --border-radius: 10px;
@@ -191,7 +208,6 @@ p {
   }
 }
 
-// Botón principal
 .submit-btn {
   --background: linear-gradient(135deg, #00CED1 0%, #008B8B 100%);
   --background-hover: linear-gradient(135deg, #00B4B8 0%, #006B6B 100%);
@@ -210,7 +226,6 @@ p {
   }
 }
 
-// Switch mode
 .switch-mode {
   text-align: center;
   margin-top: 1.5rem;
@@ -236,40 +251,59 @@ p {
   }
 }
 
-// Mensajes
-.message-container {
-  margin-top: 1rem;
-  padding: 0.75rem;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  animation: slideDown 0.3s ease-out;
+// MENSAJE FLOTANTE CENTRAL
+.floating-message {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
   
-  ion-icon {
-    font-size: 1.2rem;
-    flex-shrink: 0;
+  &.show {
+    opacity: 1;
+    visibility: visible;
+    animation: messagePop 0.4s ease-out;
   }
   
-  p {
-    margin: 0;
-    font-size: 0.85rem;
+  .message-content {
+    background: rgba(0,0,0,0.95);
+    backdrop-filter: blur(10px);
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    border: 1px solid rgba(0,206,209,0.3);
+    min-width: 280px;
+    max-width: 90vw;
+    
+    ion-icon {
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+    
+    p {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 500;
+      color: white;
+    }
   }
   
-  &:not(.error) {
-    background: rgba(0,206,209,0.1);
-    color: #00CED1;
-    border-left: 3px solid #00CED1;
+  &:not(.error) .message-content {
+    border-left: 4px solid #00CED1;
     
     ion-icon {
       color: #00CED1;
     }
   }
   
-  &.error {
-    background: rgba(255,68,68,0.1);
-    color: #ff4444;
-    border-left: 3px solid #ff4444;
+  &.error .message-content {
+    border-left: 4px solid #ff4444;
     
     ion-icon {
       color: #ff4444;
@@ -277,25 +311,35 @@ p {
   }
 }
 
-@keyframes slideDown {
-  from {
+@keyframes messagePop {
+  0% {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translate(-50%, -50%) scale(0.8);
   }
-  to {
+  70% {
+    transform: translate(-50%, -50%) scale(1.05);
+  }
+  100% {
     opacity: 1;
-    transform: translateY(0);
+    transform: translate(-50%, -50%) scale(1);
   }
 }
 
-// Botón central flotante
 .center-toggle {
-  position: absolute;
+  position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 10;
+  z-index: 100;
   cursor: pointer;
+  
+  @media (max-width: 768px) {
+    position: sticky;
+    top: auto;
+    bottom: 20px;
+    transform: translateX(-50%);
+    margin: -30px auto 20px;
+  }
   
   .toggle-button {
     width: 60px;
@@ -307,7 +351,6 @@ p {
     justify-content: center;
     box-shadow: 0 0 20px rgba(255,68,68,0.5);
     transition: all 0.3s ease;
-    cursor: pointer;
     
     ion-icon {
       font-size: 1.8rem;
@@ -326,44 +369,75 @@ p {
   }
 }
 
-// Media query para móviles
-@media (max-width: 768px) {
-  .split-container {
-    flex-direction: column;
+// Scrollbar personalizado
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #00CED1;
+  border-radius: 4px;
+  
+  &:hover {
+    background: #ff4444;
+  }
+}
+
+// Agregar estos estilos al final del archivo login.page.scss
+
+// Estilos para los textos de mensajes
+.message-text {
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+  text-align: center;
+  
+  &.highlight {
+    color: #ff4444;
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-top: 1rem;
+  }
+}
+
+// Ajustar el tamaño de los iconos nuevos
+.benefit, .feature {
+  ion-icon {
+    font-size: 1.25rem;
+    color: #ff4444;
+    flex-shrink: 0;
   }
   
-  .left-column {
-    min-height: 40%;
-  }
-  
-  .right-column {
-    min-height: 60%;
-  }
-  
-  .center-toggle {
-    top: 40%;
+  span {
+    font-size: 0.9rem;
     
-    .toggle-button {
-      width: 50px;
-      height: 50px;
-      
-      ion-icon {
-        font-size: 1.5rem;
-      }
+    @media (max-width: 768px) {
+      font-size: 0.85rem;
     }
   }
+}
+
+// Icono principal más grande
+.main-icon {
+  font-size: 5rem;
   
+  @media (max-width: 768px) {
+    font-size: 3.5rem;
+  }
+}
+
+// Mejorar espaciado en contenido
+.content-wrapper {
   h1 {
-    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
   }
   
-  .features, .benefits {
-    .feature, .benefit {
-      padding: 0.35rem;
-      
-      span {
-        font-size: 0.8rem;
-      }
-    }
+  .message-text {
+    margin-bottom: 1rem;
   }
 }

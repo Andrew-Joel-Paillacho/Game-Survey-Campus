@@ -1,71 +1,17 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-title>Login Supabase</ion-title>
-  </ion-toolbar>
-</ion-header>
-<ion-content class="main-content">
+<ion-content class="main-content" scroll-y="true">
   <div class="split-container">
     
-    <!-- Columna Izquierda - Contenido dinámico -->
-    <div class="left-column" [class.register-mode]="isRegisterMode">
-      <div class="content-wrapper">
-        <!-- Contenido para modo Login -->
-        <div class="login-content" *ngIf="!isRegisterMode">
-          <div class="icon-container">
-            <ion-icon name="megaphone-outline" class="main-icon"></ion-icon>
-          </div>
-          <h1>¡Participa en Nuestras Encuestas!</h1>
-          <p>Tu opinión es importante para nosotros. Únete y comparte tus ideas para mejorar nuestros servicios.</p>
-          <div class="features">
-            <div class="feature">
-              <ion-icon name="checkmark-circle-outline"></ion-icon>
-              <span>Encuestas rápidas y fáciles</span>
-            </div>
-            <div class="feature">
-              <ion-icon name="trophy-outline"></ion-icon>
-              <span>Gana recompensas</span>
-            </div>
-            <div class="feature">
-              <ion-icon name="people-outline"></ion-icon>
-              <span>Impacta en decisiones importantes</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Contenido para modo Register -->
-        <div class="register-content" *ngIf="isRegisterMode">
-          <div class="icon-container">
-            <ion-icon name="person-add-outline" class="main-icon"></ion-icon>
-          </div>
-          <h1>¡Únete a Nuestra Comunidad!</h1>
-          <p>Regístrate ahora y comienza a participar en encuestas exclusivas. ¡Te esperamos!</p>
-          <div class="benefits">
-            <div class="benefit">
-              <ion-icon name="rocket-outline"></ion-icon>
-              <span>Acceso anticipado a nuevas encuestas</span>
-            </div>
-            <div class="benefit">
-              <ion-icon name="gift-outline"></ion-icon>
-              <span>Beneficios exclusivos</span>
-            </div>
-            <div class="benefit">
-              <ion-icon name="chatbubbles-outline"></ion-icon>
-              <span>Comunidad activa</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Columna Derecha - Formulario -->
-    <div class="right-column">
-      <div class="form-container">
+    <!-- Columna Izquierda -->
+    <div class="left-column" [class.form-side]="!isRegisterMode" [class.info-side]="isRegisterMode">
+      
+      <!-- FORMULARIO DE LOGIN (modo login) -->
+      <div class="form-container" *ngIf="!isRegisterMode">
         <div class="form-header">
-          <h2>{{ isRegisterMode ? 'Crear Cuenta' : 'Bienvenido' }}</h2>
-          <p>{{ isRegisterMode ? 'Regístrate para comenzar' : 'Inicia sesión para continuar' }}</p>
+          <h2>Bienvenido de vuelta</h2>
+          <p>Ingresa para continuar con la encuesta</p>
         </div>
 
-        <form (ngSubmit)="isRegisterMode ? register() : login()">
+        <form (ngSubmit)="login()">
           <ion-item lines="none" class="custom-item">
             <ion-icon name="mail-outline" slot="start" class="input-icon"></ion-icon>
             <ion-input
@@ -93,34 +39,142 @@
             class="submit-btn" 
             type="submit"
             [disabled]="!email || !password">
-            {{ isRegisterMode ? 'Registrarse' : 'Iniciar Sesión' }}
+            Iniciar Sesión
           </ion-button>
 
           <div class="switch-mode">
-            <p>{{ isRegisterMode ? '¿Ya tienes cuenta?' : '¿No tienes cuenta?' }}</p>
+            <p>¿No tienes cuenta?</p>
             <ion-button 
               fill="clear" 
               class="switch-btn"
               (click)="toggleMode()">
-              {{ isRegisterMode ? 'Iniciar Sesión' : 'Registrarse' }}
+              Regístrate aquí
               <ion-icon name="arrow-forward-outline" slot="end"></ion-icon>
             </ion-button>
           </div>
+        </form>
+      </div>
 
-          <div *ngIf="mensaje" class="message-container" [class.error]="mensaje.includes('error') || mensaje.includes('confirmacion')">
-            <ion-icon [name]="mensaje.includes('error') ? 'alert-circle-outline' : 'checkmark-circle-outline'"></ion-icon>
-            <p>{{ mensaje }}</p>
+      <!-- CONTENIDO INFORMATIVO (modo registro) - NUEVO MENSAJE -->
+      <div class="content-wrapper" *ngIf="isRegisterMode">
+        <div class="icon-container">
+          <ion-icon name="game-controller-outline" class="main-icon"></ion-icon>
+        </div>
+        <h1>¡Hola! 👋</h1>
+        <p class="message-text">Estamos realizando un proyecto académico sobre videojuegos y necesitamos tu ayuda.</p>
+        <p class="message-text">Te invitamos a registrarte en nuestra aplicación para participar. No es comercial ni requiere información sensible: solo buscamos colaboración para nuestra investigación.</p>
+        <p class="message-text highlight">¡Tu aporte nos ayuda muchísimo!</p>
+        <div class="benefits">
+          <div class="benefit">
+            <ion-icon name="school-outline"></ion-icon>
+            <span>Proyecto académico</span>
+          </div>
+          <div class="benefit">
+            <ion-icon name="shield-checkmark-outline"></ion-icon>
+            <span>Sin información sensible</span>
+          </div>
+          <div class="benefit">
+            <ion-icon name="heart-outline"></ion-icon>
+            <span>Colaboración voluntaria</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Columna Derecha -->
+    <div class="right-column" [class.info-side]="!isRegisterMode" [class.form-side]="isRegisterMode">
+      
+      <!-- CONTENIDO INFORMATIVO (modo login) - NUEVO MENSAJE -->
+      <div class="content-wrapper" *ngIf="!isRegisterMode">
+        <div class="icon-container">
+          <ion-icon name="heart-circle-outline" class="main-icon"></ion-icon>
+        </div>
+        <h1>¡Gracias por unirte! 🙌</h1>
+        <p class="message-text">Ahora te pedimos un último apoyo: por favor ingresa a la app y completa la encuesta de videojuegos.</p>
+        <p class="message-text">Te tomará solo unos minutos y tu opinión es clave para mejorar los resultados de nuestro proyecto.</p>
+        <p class="message-text highlight">¡Gracias por ser parte de esta investigación!</p>
+        <div class="features">
+          <div class="feature">
+            <ion-icon name="time-outline"></ion-icon>
+            <span>Solo unos minutos</span>
+          </div>
+          <div class="feature">
+            <ion-icon name="bulb-outline"></ion-icon>
+            <span>Tu opinión es clave</span>
+          </div>
+          <div class="feature">
+            <ion-icon name="people-circle-outline"></ion-icon>
+            <span>Parte de la investigación</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- FORMULARIO DE REGISTRO (modo registro) -->
+      <div class="form-container" *ngIf="isRegisterMode">
+        <div class="form-header">
+          <h2>Crear Cuenta</h2>
+          <p>Regístrate para participar en el proyecto</p>
+        </div>
+
+        <form (ngSubmit)="register()">
+          <ion-item lines="none" class="custom-item">
+            <ion-icon name="mail-outline" slot="start" class="input-icon"></ion-icon>
+            <ion-input
+              type="email"
+              [(ngModel)]="email"
+              name="email"
+              placeholder="Correo electrónico"
+              required>
+            </ion-input>
+          </ion-item>
+
+          <ion-item lines="none" class="custom-item">
+            <ion-icon name="lock-closed-outline" slot="start" class="input-icon"></ion-icon>
+            <ion-input
+              type="password"
+              [(ngModel)]="password"
+              name="password"
+              placeholder="Contraseña"
+              required>
+            </ion-input>
+          </ion-item>
+
+          <ion-button 
+            expand="block" 
+            class="submit-btn" 
+            type="submit"
+            [disabled]="!email || !password">
+            Registrarse
+          </ion-button>
+
+          <div class="switch-mode">
+            <p>¿Ya tienes cuenta?</p>
+            <ion-button 
+              fill="clear" 
+              class="switch-btn"
+              (click)="toggleMode()">
+              Iniciar Sesión
+              <ion-icon name="arrow-forward-outline" slot="end"></ion-icon>
+            </ion-button>
           </div>
         </form>
       </div>
     </div>
 
-    <!-- Botón flotante central (alternativa visual) -->
+    <!-- Botón central intercambiador -->
     <div class="center-toggle" (click)="toggleMode()">
       <div class="toggle-button">
         <ion-icon [name]="isRegisterMode ? 'log-in-outline' : 'person-add-outline'"></ion-icon>
       </div>
     </div>
 
+  </div>
+
+  <!-- Modal de mensaje flotante CENTRAL -->
+  <div class="floating-message" *ngIf="mensaje" [class.show]="mensaje" [class.error]="isError">
+    <div class="message-content">
+      <ion-icon [name]="isError ? 'alert-circle-outline' : 'checkmark-circle-outline'"></ion-icon>
+      <p>{{ mensaje }}</p>
+    </div>
   </div>
 </ion-content>
